@@ -1,0 +1,60 @@
+{
+  "name": "chainvote",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "blockchain:compile": "hardhat compile && tsx scripts/export-chainvote-artifact.ts",
+    "blockchain:node": "hardhat node",
+    "blockchain:check-local": "tsx scripts/check-local-wallet.ts",
+    "blockchain:fund-local": "tsx scripts/fund-local-wallet.ts",
+    "blockchain:deploy:local": "hardhat run scripts/deploy-chainvote.ts --network localhost",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.5.0",
+    "@prisma/client": "^6.19.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "ethers": "^6.16.0",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.17.0",
+    "next": "16.2.6",
+    "next-themes": "^0.4.6",
+    "react": "19.2.4",
+    "react-day-picker": "^10.0.1",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "shadcn": "^4.10.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0",
+    "vaul": "^1.1.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.12",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/node": "^20.19.41",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.4.2",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.2.6",
+    "hardhat": "^3.7.0",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^4.3.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

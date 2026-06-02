@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  VOTER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum VotingStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum ContractStatus {
+  SUCCESS
+  PENDING
+  FAILED
+}
+
+enum ActivityType {
+  VOTE
+  USER_REGISTERED
+  SESSION_CREATED
+  SESSION_UPDATED
+  SESSION_CANCELLED
+  CONTRACT_DEPLOYED
+  USER_STATUS_UPDATED
+  DATA_UPDATED
+  DATA_DELETED
+  BLOCKCHAIN_UPDATED
+  BLOCKCHAIN_DELETED
+}
+
+model User {
+  id              String        @id @default(cuid())
+  fullName        String
+  email           String        @unique
+  passwordHash    String?
+  nikHash         String?       @unique
+  walletAddress   String        @unique
+  role            Role          @default(VOTER)
+  accountStatus   AccountStatus @default(PENDING)
+  isEmailVerified Boolean       @default(false)
+  image           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  createdSessions VotingSession[] @relation("CreatedSessions")
+  voteRecords     VoteRecord[]
+}
+
+model VotingSession {
+  id              String       @id @default(cuid())
+  title           String
+  description     String
+  startTime       DateTime
+  endTime         DateTime
+  status          VotingStatus @default(DRAFT)
+  contractAddress String?
+  txHash          String?
+  createdById     String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  createdBy    User          @relation("CreatedSessions", fields: [createdById], references: [id])
+  candidates   Candidate[]
+  voteRecords  VoteRecord[]
+  contractLogs ContractLog[]
+
+  @@index([status])
+  @@index([startTime, endTime])
+}
+
+model Candidate {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  imageUrl        String?
+  slogan          String?
+  vision          String?
+  mission         String?
+  programs        String[] @default([])
+  candidateIndex  Int
+  votingSessionId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  votingSession VotingSession? @relation(fields: [votingSessionId], references: [id], onDelete: SetNull)
+  voteRecords   VoteRecord[]
+
+  @@unique([votingSessionId, candidateIndex])
+  @@index([votingSessionId])
+}
+
+model VoteRecord {
+  id              String   @id @default(cuid())
+  userId          String
+  votingSessionId String
+  candidateId     String
+  walletAddress   String
+  txHash          String   @unique
+  blockNumber     Int
+  votedAt         DateTime @default(now())
+
+  user          User          @relation(fields: [userId], references: [id])
+  votingSession VotingSession @relation(fields: [votingSessionId], references: [id])
+  candidate     Candidate     @relation(fields: [candidateId], references: [id])
+
+  @@unique([userId, votingSessionId])
+  @@index([votingSessionId])
+  @@index([candidateId])
+}
+
+model ContractLog {
+  id              String         @id @default(cuid())
+  votingSessionId String
+  contractAddress String
+  txHash          String
+  blockNumber     Int?
+  status          ContractStatus @default(PENDING)
+  errorMessage    String?
+  deployedAt      DateTime       @default(now())
+
+  votingSession VotingSession @relation(fields: [votingSessionId], references: [id], onDelete: Cascade)
+
+  @@index([votingSessionId])
+  @@index([status])
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  description String
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

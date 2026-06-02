@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-9e56c59a3b48f7774ad67eac209bf0c5e50e1cb6",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/ChainVote.sol": "project/contracts/ChainVote.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/ChainVote.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ncontract ChainVote {\n    struct Candidate {\n        uint256 id;\n        string name;\n        uint256 voteCount;\n    }\n\n    string public title;\n    address public owner;\n    uint256 public startTime;\n    uint256 public endTime;\n\n    Candidate[] private candidates;\n    mapping(address => bool) public hasVoted;\n    mapping(address => uint256) public selectedCandidate;\n\n    event VoteCast(address indexed voter, uint256 indexed candidateId, uint256 timestamp);\n\n    error VotingNotStarted();\n    error VotingEnded();\n    error AlreadyVoted();\n    error InvalidCandidate();\n    error InvalidVotingWindow();\n    error EmptyCandidates();\n\n    constructor(\n        string memory _title,\n        string[] memory _candidateNames,\n        uint256 _startTime,\n        uint256 _endTime\n    ) {\n        if (_candidateNames.length == 0) revert EmptyCandidates();\n        if (_startTime >= _endTime) revert InvalidVotingWindow();\n\n        title = _title;\n        owner = msg.sender;\n        startTime = _startTime;\n        endTime = _endTime;\n\n        for (uint256 i = 0; i < _candidateNames.length; i++) {\n            candidates.push(Candidate({\n                id: i + 1,\n                name: _candidateNames[i],\n                voteCount: 0\n            }));\n        }\n    }\n\n    function vote(uint256 candidateId) external {\n        if (block.timestamp < startTime) revert VotingNotStarted();\n        if (block.timestamp > endTime) revert VotingEnded();\n        if (hasVoted[msg.sender]) revert AlreadyVoted();\n        if (candidateId == 0 || candidateId > candidates.length) revert InvalidCandidate();\n\n        hasVoted[msg.sender] = true;\n        selectedCandidate[msg.sender] = candidateId;\n        candidates[candidateId - 1].voteCount += 1;\n\n        emit VoteCast(msg.sender, candidateId, block.timestamp);\n    }\n\n    function getCandidate(uint256 candidateId) external view returns (Candidate memory) {\n        if (candidateId == 0 || candidateId > candidates.length) revert InvalidCandidate();\n        return candidates[candidateId - 1];\n    }\n\n    function getCandidates() external view returns (Candidate[] memory) {\n        return candidates;\n    }\n\n    function candidateCount() external view returns (uint256) {\n        return candidates.length;\n    }\n\n    fallback() external {}\n\n    receive() external payable {}\n}\n"
+      }
+    }
+  }
+}
